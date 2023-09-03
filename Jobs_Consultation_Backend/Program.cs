@@ -23,6 +23,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+//core policy
+app.UseCors("corspolicy");
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
