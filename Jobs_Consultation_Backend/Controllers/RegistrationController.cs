@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Reflection.Metadata;
 using System.Xml.Linq;
 using user_api.Common;
@@ -111,8 +112,6 @@ namespace Jobs_Consultation_Backend.Controllers
             return Ok(response);
         }
 
-
-
         [HttpPost]
         [Route("consultant")]
         public IActionResult Consultant(AddConsultant consultant)
@@ -128,14 +127,16 @@ namespace Jobs_Consultation_Backend.Controllers
                     con.Open();
                     string encryptedPassword = CommonMethods.ConvertToEncrypt(consultant.Password);
 
-                    string insertUserQuery = "INSERT INTO user (UserName, Email, Password)" +
-                                            "VALUES (@UserName, @Email, @Password)";
+                    string insertUserQuery = "INSERT INTO user (UserName, Email, Permission, Password)" +
+                                            "VALUES (@UserName, @Email, @Permission, @Password)";
 
                     using (MySqlCommand cmd = new MySqlCommand(insertUserQuery, con))
                     {
+                        int Permission = 2;
                         string UserName = consultant.FName+ " " +consultant.LName;
                         cmd.Parameters.AddWithValue("@UserName", UserName);
                         cmd.Parameters.AddWithValue("@Email", consultant.Email);
+                        cmd.Parameters.AddWithValue("@Permission", Permission);
                         cmd.Parameters.AddWithValue("@Password", encryptedPassword);
 
                         int rowsAffected = cmd.ExecuteNonQuery();
@@ -430,6 +431,189 @@ namespace Jobs_Consultation_Backend.Controllers
                     else
                     {
                         return NotFound("Consultant delete failed.");
+                    }
+                }
+            }
+        }
+
+
+        [HttpPost]
+        [Route("Users")]
+        public IActionResult Users(AddUsers user)
+        {
+            Response response = new Response();
+            try
+            {
+                string connectionString = _configuration.GetConnectionString("MySqlConnection");
+
+                using (MySqlConnection con = new MySqlConnection(connectionString))
+                {
+                    con.Open();
+                    string encryptedPassword = CommonMethods.ConvertToEncrypt(user.Password);
+
+                    string insertUserQuery = "INSERT INTO user (UserName, Email, Permission, Password)" +
+                                            "VALUES (@UserName, @Email, @Permission, @Password)";
+
+                    using (MySqlCommand cmd = new MySqlCommand(insertUserQuery, con))
+                    {
+                        string UserName = user.FName + " " + user.LName;
+                        cmd.Parameters.AddWithValue("@UserName", UserName);
+                        cmd.Parameters.AddWithValue("@Email", user.Email);
+                        cmd.Parameters.AddWithValue("@Permission", user.Permission);
+                        cmd.Parameters.AddWithValue("@Password", encryptedPassword);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            response.StatusCode = 200;
+                            response.StatusMessage = "Registration successful";
+                        }   
+                        else
+                        {
+                            response.StatusCode = 100;
+                            response.StatusMessage = "User registration failed";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+
+            return Ok(response);
+        }
+
+        [HttpGet]
+        [Route("Users")]
+        public IActionResult GetUsers()
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+            List<GetUsers> users = new List<GetUsers>();
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "SELECT * FROM user";
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int Permission = Convert.ToInt32(reader["Permission"]);
+                            string Permission_Type = "";
+
+                            if (Permission == 1)
+                            {
+                                Permission_Type = "Admin";
+                            }
+                            else if (Permission == 2)
+                            {
+                                Permission_Type = "Consultant";
+                            }
+                            else if (Permission == 3)
+                            {
+                                Permission_Type = "Job Seeker";
+                            }
+                            else
+                            {
+                                Permission_Type = "Reception";
+                            }
+
+                            int Status = Convert.ToInt32(reader["Status"]);
+                            string Status_Type = "";
+
+                            if (Status == 1)
+                            {
+                                Status_Type = "Active";
+                            }
+                            else
+                            {
+                                Status_Type = "Deactive";
+                            }
+
+
+                            var user = new GetUsers
+                            {
+                                User_Id = Convert.ToInt32(reader["User_Id"]),
+                                UserName = reader["UserName"].ToString(),
+                                Email = reader["Email"].ToString(),
+                                Permission = Convert.ToInt32(reader["Permission"]),
+                                Permission_Type = Permission_Type,
+                                Status_Type = Status_Type,
+
+                            };
+                            users.Add(user);
+                        }
+                    }
+                }
+            }
+
+            return Ok(users);
+        }
+
+        [HttpDelete]
+        [Route("Users/{id}")]
+        public IActionResult DeleteUsers(int id)
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "UPDATE user SET Status = 0, updated_at = CURRENT_TIMESTAMP() WHERE User_Id = @User_Id";
+
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@User_Id", id);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        return Ok("User deleted successfully!");
+                    }
+                    else
+                    {
+                        return NotFound("User delete failed.");
+                    }
+                }
+            }
+        }
+
+
+        [HttpPut]
+        [Route("Users/{id}")]
+        public IActionResult UpdateUsers(int id, UpdateUser user)
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "UPDATE user SET Email = @Email, Permission = @Permission, updated_at = CURRENT_TIMESTAMP() WHERE User_Id  = @User_Id";
+
+
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@User_Id", id);
+                    cmd.Parameters.AddWithValue("@Email", user.Email);
+                    cmd.Parameters.AddWithValue("@Permission", user.Permission);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        return Ok("User details updated successfully!");
+                    }
+                    else
+                    {
+                        return NotFound("User details update failed.");
                     }
                 }
             }
