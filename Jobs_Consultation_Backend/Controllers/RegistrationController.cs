@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Xml.Linq;
 using user_api.Common;
 
 namespace Jobs_Consultation_Backend.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class RegistrationController : ControllerBase
@@ -199,6 +201,121 @@ namespace Jobs_Consultation_Backend.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet]
+        [Route("Jobseeker")]
+        public IActionResult GetJobseeker()
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+            List<GetJobSeeker> jobseekers = new List<GetJobSeeker>();
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "SELECT * FROM job_seeker WHERE Status = 1";
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            DateTime dateTimeValue = (DateTime)reader["DOB"];
+
+
+                            var jobseeker = new GetJobSeeker
+                            {
+                                Job_Seeker_Id = Convert.ToInt32(reader["Job_Seeker_Id"]),
+                                FName = reader["FName"].ToString(),
+                                LName = reader["LName"].ToString(),
+                                UserName = reader["FName"].ToString() + " " + reader["LName"].ToString(),
+                                NIC = reader["NIC"].ToString(),
+                                DOB = DateOnly.FromDateTime(dateTimeValue),
+                                Email = reader["Email"].ToString(),
+                                TelNo = Convert.ToInt32(reader["Tel_No"]),
+                                Address = reader["Address"].ToString(),
+                                Status = Convert.ToInt32(reader["Status"])
+                            };
+
+
+                            jobseekers.Add(jobseeker);
+
+                        }
+                    }
+                }
+            }
+
+            return Ok(jobseekers);
+        }
+
+        [HttpPut]
+        [Route("Jobseeker/{id}")]
+        public IActionResult UpdateConsultant(int id, UpdateJobSeeker jobseeker)
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "UPDATE job_seeker SET FName = @FName, LName = @LName, NIC = @NIC, DOB = @DOB, Email = @Email, Tel_No = @TelNo, Address = @Address, updated_at = CURRENT_TIMESTAMP() WHERE Job_Seeker_Id = @Job_Seeker_Id";
+
+
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@Job_Seeker_Id", id);
+                    cmd.Parameters.AddWithValue("@FName", jobseeker.FName);
+                    cmd.Parameters.AddWithValue("@LName", jobseeker.LName);
+                    cmd.Parameters.AddWithValue("@Email", jobseeker.Email);
+                    cmd.Parameters.AddWithValue("@TelNo", jobseeker.TelNo);
+                    cmd.Parameters.AddWithValue("@NIC", jobseeker.NIC);
+                    cmd.Parameters.AddWithValue("@DOB", jobseeker.DOB.ToString("yyyy-MM-dd"));
+                    cmd.Parameters.AddWithValue("@Address", jobseeker.Address);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        return Ok("Job seeker details updated successfully!");
+                    }
+                    else
+                    {
+                        return NotFound("Job seeker details update failed.");
+                    }
+                }
+            }
+        }
+
+        [HttpDelete]
+        [Route("Jobseeker/{id}")]
+        public IActionResult DeleteJobseeker(int id)
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "UPDATE job_seeker SET Status = 0, updated_at = CURRENT_TIMESTAMP() WHERE Job_Seeker_Id = @Job_Seeker_Id";
+
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@Job_Seeker_Id", id);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        return Ok("Job seeker deleted successfully!");
+                    }
+                    else
+                    {
+                        return NotFound("Job seeker delete failed.");
+                    }
+                }
+            }
+        }
+
 
         [HttpGet]
         [Route("Consultant")]

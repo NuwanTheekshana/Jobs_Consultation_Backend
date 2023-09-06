@@ -18,4 +18,31 @@
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
     }
+
+
+    public class GetJobSeeker
+    {
+        public int Job_Seeker_Id { get; set; }
+        public string FName { get; set; }
+        public string LName { get; set; }
+        public string UserName { get; set; }
+        public string NIC { get; set; }
+        public DateOnly DOB { get; set; }
+        public string Email { get; set; }
+        public int TelNo { get; set; }
+        public string Address { get; set; }
+        public int Status { get; set; }
+
+    }
+
+    public class UpdateJobSeeker
+    {
+        public string FName { get; set; }
+        public string LName { get; set; }
+        public string NIC { get; set; }
+        public DateTime DOB { get; set; }
+        public string Email { get; set; }
+        public int TelNo { get; set; }
+        public string Address { get; set; }
+    }
 }
