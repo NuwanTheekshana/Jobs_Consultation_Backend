@@ -544,7 +544,6 @@ namespace Jobs_Consultation_Backend.Controllers
                                 Permission = Convert.ToInt32(reader["Permission"]),
                                 Permission_Type = Permission_Type,
                                 Status_Type = Status_Type,
-
                             };
                             users.Add(user);
                         }
@@ -618,5 +617,7 @@ namespace Jobs_Consultation_Backend.Controllers
                 }
             }
         }
+    
+    
     }
 }
