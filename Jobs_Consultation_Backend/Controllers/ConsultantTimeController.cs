@@ -149,7 +149,6 @@ namespace Jobs_Consultation_Backend.Controllers
 
                 string query = "UPDATE consultant_time SET Time_From = @Time_From, Time_To = @Time_To, updated_at = CURRENT_TIMESTAMP() WHERE Con_Time_Id = @Cons_time_id";
 
-
                 using (MySqlCommand cmd = new MySqlCommand(query, con))
                 {
                     cmd.Parameters.AddWithValue("@Cons_time_id", id);
