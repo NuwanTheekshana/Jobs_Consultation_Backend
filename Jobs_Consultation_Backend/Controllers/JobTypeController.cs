@@ -15,7 +15,7 @@ namespace Jobs_Consultation_Backend.Controllers
         {
             _configuration = configuration;
         }
-
+         
         [HttpPost]
         [Route("jobtype")]
         public Response JobType(AddJobType job)
