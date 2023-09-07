@@ -18,6 +18,7 @@ namespace Jobs_Consultation_Backend.Models
         public string Time_From { get; set; }
         public string Time_To { get; set; }
         public int Status { get; set; }
+        public string Status_type { get; set; }
 
     }
 

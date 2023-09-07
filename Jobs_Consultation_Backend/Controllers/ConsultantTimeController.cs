@@ -103,13 +103,26 @@ namespace Jobs_Consultation_Backend.Controllers
                         {
                             while (reader.Read())
                             {
+                                int Status = Convert.ToInt32(reader["Status"]);
+                                string Status_type = "";
+
+                                if (Status == 1)
+                                {
+                                    Status_type = "Active";
+                                }
+                                else
+                                {
+                                    Status_type = "Deactive";
+                                }
+
                                 var GetConsultantTime = new GetConsultantTime
                                 {
                                     Con_Time_Id = Convert.ToInt32(reader["Con_Time_Id"]),
                                     Cons_Id = Convert.ToInt32(reader["Cons_Id"]),
                                     Time_From = reader["Time_From"].ToString(),
                                     Time_To = reader["Time_To"].ToString(),
-                                    Status = Convert.ToInt32(reader["Status"])
+                                    Status = Convert.ToInt32(reader["Status"]),
+                                    Status_type = Status_type
                                 };
                                 ConsultantTimes.Add(GetConsultantTime);
                             }
