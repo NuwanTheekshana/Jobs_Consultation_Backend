@@ -26,6 +26,8 @@ if (app.Environment.IsDevelopment())
 //core policy
 app.UseCors("corspolicy");
 
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

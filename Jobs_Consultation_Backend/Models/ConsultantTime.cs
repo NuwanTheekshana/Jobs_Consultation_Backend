@@ -22,6 +22,13 @@ namespace Jobs_Consultation_Backend.Models
 
     }
 
+    public class FindConsultantTime
+    {
+        public int Cons_Id { get; set; }
+        public DateOnly RequestDate { get; set; }
+
+    }
+
     public class UpdateConsultantTime
     {
         public TimeOnly Time_From { get; set; }

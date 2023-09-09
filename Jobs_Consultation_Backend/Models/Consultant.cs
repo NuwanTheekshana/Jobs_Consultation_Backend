@@ -17,6 +17,13 @@
         public int Status { get; set; }
     }
 
+    public class FindConsultant
+    {
+        public int Cons_Id { get; set; }
+        public string UserName { get; set; }
+
+    }
+
     public class AddConsultant
     {
         public string FName { get; set; }

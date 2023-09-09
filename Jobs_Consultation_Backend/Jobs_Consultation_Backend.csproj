@@ -7,9 +7,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\Attachments\3f92c40c-a2e6-4122-ae72-ba9409721df1.pdf" />
+    <Content Remove="wwwroot\Attachments\6b08e702-63e1-4d45-a473-68958a9edc8d.pdf" />
+    <Content Remove="wwwroot\Attachments\c3113fc8-1aaa-4630-960e-63093aa8136e.pdf" />
+    <Content Remove="wwwroot\Attachments\dc301664-0f05-4b1c-8a18-41ced8117339.pdf" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
     <PackageReference Include="MySql.Data" Version="8.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Attachments\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\Attachments\3f92c40c-a2e6-4122-ae72-ba9409721df1.pdf" />
+    <None Include="wwwroot\Attachments\6b08e702-63e1-4d45-a473-68958a9edc8d.pdf" />
+    <None Include="wwwroot\Attachments\c3113fc8-1aaa-4630-960e-63093aa8136e.pdf" />
+    <None Include="wwwroot\Attachments\dc301664-0f05-4b1c-8a18-41ced8117339.pdf" />
   </ItemGroup>
 
 </Project>

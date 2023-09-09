@@ -92,6 +92,43 @@ namespace Jobs_Consultation_Backend.Controllers
 
 
 
+        [HttpGet]
+        [Route("countries/{id}")]
+        public IActionResult GetCountry(int id)
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+            List<GetCountries> countries = new List<GetCountries>();
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "SELECT * FROM country WHERE Country_Id = @Country_Id and Status = 1";
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@Country_Id", id);
+
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var country = new GetCountries
+                            {
+                                Country_Id = Convert.ToInt32(reader["Country_Id"]),
+                                Country_Code = reader["Country_Code"].ToString(),
+                                Country_Name = reader["Country_Name"].ToString(),
+                                Status = Convert.ToInt32(reader["Status"])
+                            };
+                            countries.Add(country);
+                        }
+                    }
+                }
+            }
+
+            return Ok(countries);
+        }
+
+
         [HttpPut]
         [Route("country/{id}")]
         public IActionResult UpdateCountry(int id, UpdateCountry country)
