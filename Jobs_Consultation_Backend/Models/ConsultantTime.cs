@@ -14,6 +14,7 @@ namespace Jobs_Consultation_Backend.Models
     public class GetConsultantTime
     {
         public int Con_Time_Id { get; set; }
+        public string consultantName { get; set; }
         public int Cons_Id { get; set; }
         public string Time_From { get; set; }
         public string Time_To { get; set; }

@@ -70,6 +70,42 @@ namespace Jobs_Consultation_Backend.Controllers
             return response;
         }
 
+        [HttpGet]
+        [Route("ConsultantTime")]
+        public IActionResult GetConsultantTime()
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+            List<GetConsultantTime> ConsultantTimes = new List<GetConsultantTime>();
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+                    string query = "SELECT ct.*, \r\n\t   CONCAT(c.FName, ' ', c.LName) consultantName\r\nFROM consultant_time ct,\r\n\t consultant c\r\nWHERE c.Cons_Id = ct.Cons_Id\r\nand ct.Status = 1";
+
+                    using (MySqlCommand cmd = new MySqlCommand(query, con))
+                    {
+
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+
+                                var GetConsultantTime = new GetConsultantTime
+                                {
+                                    Con_Time_Id = Convert.ToInt32(reader["Con_Time_Id"]),
+                                    consultantName = reader["consultantName"].ToString(),
+                                    Cons_Id = Convert.ToInt32(reader["Cons_Id"]),
+                                    Time_From = reader["Time_From"].ToString(),
+                                    Time_To = reader["Time_To"].ToString(),
+                                };
+                                ConsultantTimes.Add(GetConsultantTime);
+                            }
+                        }
+
+                    return Ok(ConsultantTimes);
+                }
+            }
+        }
 
         [HttpGet]
         [Route("ConsultantTime/{id}")]

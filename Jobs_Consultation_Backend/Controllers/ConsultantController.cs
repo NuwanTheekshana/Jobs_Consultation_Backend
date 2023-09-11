@@ -10,6 +10,8 @@ namespace Jobs_Consultation_Backend.Controllers
     public class ConsultantController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly string attachmentFolderPath = "wwwroot/Image/";
+        private readonly string attachmentFolderPathdb = "Image/";
 
         public ConsultantController(IConfiguration configuration)
         {
@@ -170,6 +172,120 @@ namespace Jobs_Consultation_Backend.Controllers
                 }
             }
         }
+
+
+        [HttpGet]
+        [Route("Consultant/ConsultantProfile/{Id}")]
+        public IActionResult ConsultantProfile(int Id)
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+            List<ConsultantProfile> consultants = new List<ConsultantProfile>();
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "SELECT con.Cons_Id, CONCAT(con.FName, ' ', con.LName) UserName, Email, con.Description, con.Image_Path, jc.Spec_Name Job_Category, c.Country_Name Country  FROM consultant con, country c, consultant_spec_tbl jc WHERE con.Country_Id = c.Country_Id and con.Spec_Id = jc.Spec_Id and con.User_Id = @conid";
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@conid", Id);
+
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var consultant = new ConsultantProfile
+                            {
+                                Cons_Id = Convert.ToInt32(reader["Cons_Id"]),
+                                Username = reader["Username"].ToString(),
+                                Email = reader["Email"].ToString(),
+                                Description = reader["Description"].ToString(),
+                                Image_Path = reader["Image_Path"].ToString(),
+                                Job_Category = reader["Job_Category"].ToString(),
+                                Country = reader["Country"].ToString()
+                            };
+                            consultants.Add(consultant);
+                        }
+                    }
+                }
+            }
+
+            return Ok(consultants);
+        }
+
+
+
+        [HttpPut]
+        [Route("Consultant/ConsultantProfile")]
+        public IActionResult UpdateConsultantProfile([FromForm] UpdateConsultantProfile consultant)
+        {
+            try
+            {
+                string connectionString = _configuration.GetConnectionString("MySqlConnection");
+                using (MySqlConnection con = new MySqlConnection(connectionString))
+                {
+                    con.Open();
+
+                    if (consultant.attachment != null)
+                    {
+                        string fileName = Guid.NewGuid() + Path.GetExtension(consultant.attachment.FileName);
+                        string filePath = Path.Combine(attachmentFolderPath, fileName);
+                        string filePathdb = Path.Combine(attachmentFolderPathdb, fileName);
+
+                        using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            consultant.attachment.CopyTo(stream);
+                        }
+
+                        string query = "UPDATE consultant SET Description = @Description, Image_Path = @imgpath WHERE Cons_Id = @Cons_Id";
+
+                        using (MySqlCommand cmd = new MySqlCommand(query, con))
+                        {
+                            cmd.Parameters.AddWithValue("@Cons_Id", consultant.Cons_id);
+                            cmd.Parameters.AddWithValue("@imgpath", filePathdb);
+                            cmd.Parameters.AddWithValue("@Description", consultant.Description);
+
+                            int rowsAffected = cmd.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                return Ok(new { StatusCode = 200, StatusMessage = "Profile updated successfully..!" });
+                            }
+                            else
+                            {
+                                return BadRequest(new { StatusCode = 100, StatusMessage = "Profile update failed..!" });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        string query = "UPDATE consultant SET Description = @Description WHERE Cons_Id = @Cons_Id";
+
+                        using (MySqlCommand cmd = new MySqlCommand(query, con))
+                        {
+                            cmd.Parameters.AddWithValue("@Cons_Id", consultant.Cons_id);
+                            cmd.Parameters.AddWithValue("@Description", consultant.Description);
+
+                            int rowsAffected = cmd.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                return Ok(new { StatusCode = 200, StatusMessage = "Profile updated successfully..!" });
+                            }
+                            else
+                            {
+                                return BadRequest(new { StatusCode = 100, StatusMessage = "Profile update failed..!" });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { StatusCode = 500, StatusMessage = "Internal Server Error", ErrorMessage = ex.Message });
+            }
+        }
+
 
     }
 }

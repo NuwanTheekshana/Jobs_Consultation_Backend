@@ -45,5 +45,22 @@
         public int Country { get; set; }
     }
 
-    
+    public class ConsultantProfile
+    {
+        public int Cons_Id { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Description { get; set; }
+        public string Image_Path { get; set; }
+        public string Job_Category { get; set; }
+        public string Country { get; set; }
+    }
+
+    public class UpdateConsultantProfile
+    {
+        public int Cons_id { get; set; }
+        public string Description { get; set; }
+        public IFormFile attachment { get; set; }
+    }
+
 }

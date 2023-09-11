@@ -55,9 +55,9 @@ namespace Jobs_Consultation_Backend.Controllers
                     using (MySqlCommand cmd = new MySqlCommand(query, con))
                     {
 
-                        int consID = getCons_id(jobseeker.jobseekerId, con);
+                        int seekerID = getseeker_id(jobseeker.jobseekerId, con);
 
-                        cmd.Parameters.AddWithValue("@Cons_Id", jobseeker.jobseekerId);
+                        cmd.Parameters.AddWithValue("@Cons_Id", seekerID);
                         cmd.Parameters.AddWithValue("@Job_Seeker_Doc_Path", filePathdb);
                         cmd.Parameters.AddWithValue("@Description", jobseeker.Description);
                         cmd.Parameters.AddWithValue("@RequestDate", jobseeker.request_date.ToString("yyyy-MM-dd"));
@@ -111,6 +111,30 @@ namespace Jobs_Consultation_Backend.Controllers
                 }
             }
         }
+
+
+        private int getseeker_id(int jobseekerId, MySqlConnection connection)
+        {
+            string query = "SELECT Job_Seeker_Id FROM job_seeker WHERE User_id = @User_id";
+
+            using (MySqlCommand cmd = new MySqlCommand(query, connection))
+            {
+                cmd.Parameters.AddWithValue("@User_id", jobseekerId);
+
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return Convert.ToInt32(reader["Job_Seeker_Id"]);
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+            }
+        }
+
 
         [HttpGet]
         [Route("JobRequest/{id}")]
@@ -189,6 +213,160 @@ namespace Jobs_Consultation_Backend.Controllers
             return Ok(jobrequests);
         }
 
+
+
+        [HttpGet]
+        [Route("JobRequest/GetJobSeekerRequest/{jobseekerid}")]
+        public IActionResult GetJobSeekerRequest(int jobseekerid)
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+            List<GetJobRequest> jobrequests = new List<GetJobRequest>();
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "SELECT JR.Job_Seeker_Req_Id," +
+                    "                  JS.FName JSFname," +
+                    "                  JS.LName JSLname," +
+                    "                  C.FName CFname," +
+                    "                  C.LName CLname," +
+                    "                  JR.Request_Date," +
+                    "                  CT.Time_From," +
+                    "                  CT.Time_To," +
+                    "                  JR.Job_Seeker_Doc_Path," +
+                    "                  JR.Job_Status," +
+                    "                  JR.Description" +
+                    "                  FROM job_request jr, " +
+                    "                       job_seeker js, " +
+                    "                       consultant c, " +
+                    "                       consultant_time ct " +
+                    "                  WHERE JR.Job_Seeker_Id = JS.Job_Seeker_Id " +
+                    "                  AND JR.Cons_Id = C.Cons_Id " +
+                    "                  AND JR.Con_Time_Id = ct.Con_Time_Id" +
+                    "                  AND JR.Job_Seeker_Id = @Jobseeker_Id" +
+                    "                  AND JR.Status = 1";
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+                    int jobseeker_fun_id = getseeker_id(jobseekerid, con);
+                    cmd.Parameters.AddWithValue("@Jobseeker_Id", jobseeker_fun_id);
+
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+
+                        while (reader.Read())
+                        {
+                            DateTime dateTimeValue = (DateTime)reader["request_date"];
+
+                            int Job_Status = Convert.ToInt32(reader["Job_Status"]);
+                            string JobStatusType = "";
+                            if (Job_Status == 1)
+                            {
+                                JobStatusType = "Pending";
+                            }
+                            else if (Job_Status == 2)
+                            {
+                                JobStatusType = "Accepted";
+                            }
+                            else if (Job_Status == 3)
+                            {
+                                JobStatusType = "Rejected";
+                            }
+
+                            var jobrequest = new GetJobRequest
+                            {
+
+                                jobseekerRequestId = Convert.ToInt32(reader["Job_Seeker_Req_Id"]),
+                                JobSeekerUserName = reader["JSFname"].ToString() + " " + reader["JSLname"].ToString(),
+                                ConsultantUserName = reader["CFname"].ToString() + " " + reader["CLname"].ToString(),
+                                Description = reader["Description"].ToString(),
+                                Attachment = reader["Job_Seeker_Doc_Path"].ToString(),
+                                request_date = DateOnly.FromDateTime(dateTimeValue),
+                                Time_slot = reader["Time_From"].ToString() + "-" + reader["Time_To"].ToString(),
+                                Job_Status = JobStatusType
+                            };
+                            jobrequests.Add(jobrequest);
+                        }
+                    }
+                }
+            }
+
+            return Ok(jobrequests);
+        }
+
+
+        [HttpGet]
+        [Route("JobRequest")]
+        public IActionResult GetAllJobRequest()
+        {
+            string connectionString = _configuration.GetConnectionString("MySqlConnection");
+            List<GetJobRequest> jobrequests = new List<GetJobRequest>();
+
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+
+                string query = "SELECT JR.Job_Seeker_Req_Id," +
+                    "                  JS.FName," +
+                    "                  JS.LName," +
+                    "                  JR.Request_Date," +
+                    "                  CT.Time_From," +
+                    "                  CT.Time_To," +
+                    "                  JR.Job_Seeker_Doc_Path," +
+                    "                  JR.Job_Status," +
+                    "                  JR.Description" +
+                    "                  FROM job_request jr, " +
+                    "                       job_seeker js, " +
+                    "                       consultant c, " +
+                    "                       consultant_time ct " +
+                    "                  WHERE JR.Job_Seeker_Id = JS.Job_Seeker_Id " +
+                    "                  AND JR.Cons_Id = C.Cons_Id " +
+                    "                  AND JR.Con_Time_Id = ct.Con_Time_Id" +
+                    "                  AND JR.Status = 1";
+                using (MySqlCommand cmd = new MySqlCommand(query, con))
+                {
+
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+
+                        while (reader.Read())
+                        {
+                            DateTime dateTimeValue = (DateTime)reader["request_date"];
+
+                            int Job_Status = Convert.ToInt32(reader["Job_Status"]);
+                            string JobStatusType = "";
+                            if (Job_Status == 1)
+                            {
+                                JobStatusType = "Pending";
+                            }
+                            else if (Job_Status == 2)
+                            {
+                                JobStatusType = "Accepted";
+                            }
+                            else if (Job_Status == 3)
+                            {
+                                JobStatusType = "Rejected";
+                            }
+
+                            var jobrequest = new GetJobRequest
+                            {
+
+                                jobseekerRequestId = Convert.ToInt32(reader["Job_Seeker_Req_Id"]),
+                                UserName = reader["FName"].ToString() + " " + reader["LName"].ToString(),
+                                Description = reader["Description"].ToString(),
+                                Attachment = reader["Job_Seeker_Doc_Path"].ToString(),
+                                request_date = DateOnly.FromDateTime(dateTimeValue),
+                                Time_slot = reader["Time_From"].ToString() + "-" + reader["Time_To"].ToString(),
+                                Job_Status = JobStatusType
+                            };
+                            jobrequests.Add(jobrequest);
+                        }
+                    }
+                }
+            }
+
+            return Ok(jobrequests);
+        }
 
 
         [HttpPut]

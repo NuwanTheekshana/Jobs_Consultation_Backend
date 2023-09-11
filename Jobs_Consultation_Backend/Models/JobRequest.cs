@@ -19,6 +19,8 @@
     {
         public int jobseekerRequestId { get; set; }
         public string UserName { get; set; }
+        public string JobSeekerUserName { get; set; }
+        public string ConsultantUserName { get; set; }
         public string Description { get; set; }
         public string Attachment { get; set; }
         public DateOnly request_date { get; set; }
