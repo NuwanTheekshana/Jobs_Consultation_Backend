@@ -204,7 +204,6 @@ namespace Jobs_Consultation_Backend.Controllers
 
                 if (consIdList.Count > 0)
                 {
-                    // Construct the IN clause as a comma-separated string
                     string inClause = string.Join(",", consIdList);
 
                     string query = $"SELECT * FROM consultant_time WHERE Con_Time_Id NOT IN ({inClause}) AND Status = 1";
@@ -232,9 +231,11 @@ namespace Jobs_Consultation_Backend.Controllers
                 }
                 else
                 {
-                    string query = $"SELECT * FROM consultant_time WHERE Status = 1";
+                    string query = $"SELECT * FROM consultant_time WHERE Cons_Id = @Cons_Id and Status = 1";
                     using (MySqlCommand cmd = new MySqlCommand(query, con))
                     {
+                        cmd.Parameters.AddWithValue("@Cons_Id", id);
+
                         using (MySqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())

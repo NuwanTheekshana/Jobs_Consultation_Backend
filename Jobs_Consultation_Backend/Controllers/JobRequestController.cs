@@ -1,4 +1,5 @@
-﻿using Jobs_Consultation_Backend.Models;
+﻿using Google.Protobuf.WellKnownTypes;
+using Jobs_Consultation_Backend.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -209,7 +210,6 @@ namespace Jobs_Consultation_Backend.Controllers
                     }
                 }
             }
-
             return Ok(jobrequests);
         }
 
@@ -391,16 +391,27 @@ namespace Jobs_Consultation_Backend.Controllers
 
                     if (rowsAffected > 0)
                     {
-                        string msg = "";
-                        if (status == 2)
-                        {
-                            msg = "Request accepted..!";
-                        }
-                        else if (status == 3)
-                        {
-                            msg = "Request rejected..!";
-                        }
-                        return Ok(msg);
+                            string msg = "";
+                            string emailbody = "";
+                            if (status == 2)
+                            {
+                                msg = "Request accepted..!";
+                                emailbody = $"Dear Sir / Madam,\n\n" +
+                                       "I hope this email finds you well. I am pleased to inform you that we have accepted your appointment request for an online job consultation. We are excited to assist you in your job search journey and provide valuable insights and guidance to help you achieve your career goals.\n\n" +
+                                       "Here are the details of your appointment:\n\n" +
+                                       $"Appointment Id: {id}\n" +
+                                       $"Request Status: Accepted \n";
+                                Mail mail = new Mail("nuwanthikshana@gmail.com", emailbody);
+                            }
+                            else if (status == 3)
+                            {
+                                msg = "Request rejected..!";
+                                emailbody = $"your consultant job request has been rejected. please send another request to us.\n\n" +
+                                      $"Appointment Id: {id}\n" +
+                                      $"Request Status: Rejected \n";
+                            Mail mail = new Mail("nuwanthikshana@gmail.com", emailbody);
+                            }
+                            return Ok(msg);
                     }
                     else
                     {
