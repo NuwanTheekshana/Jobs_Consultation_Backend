@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\Jobs_Consultation_Backend.props" />
+</Project>

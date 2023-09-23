@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\Jobs_Consultation_Backend.props" />
+</Project>
